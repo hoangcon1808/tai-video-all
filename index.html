@@ -15,7 +15,11 @@
                         dark: { 800: '#1e1e2e', 900: '#11111b', 700: '#313244', 600: '#45475a' },
                         primary: '#cba6f7',
                         accent: '#f38ba8',
-                        success: '#a6e3a1'
+                        success: '#a6e3a1',
+                        fb: '#1877f2',
+                        ig: '#e4405f',
+                        tiktok: '#ff0050',
+                        yt: '#ff0000'
                     }
                 }
             }
@@ -31,21 +35,32 @@
     <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none px-4"></div>
 
     <div class="max-w-4xl mx-auto p-4 md:p-6">
-        <header class="text-center py-6 mb-8 border-b border-dark-700">
+        <header class="text-center py-6 mb-6 border-b border-dark-700">
             <h1 class="text-3xl md:text-4xl font-extrabold bg-gradient-to-r from-primary via-pink-400 to-accent bg-clip-text text-transparent">
                 <i class="fa-solid fa-cloud-arrow-down mr-2"></i>Universal Video Downloader
             </h1>
-            <p class="text-gray-400 mt-2 text-sm">Tải video đa nền tảng tốc độ cao • Không pop-up • Vượt rào CORS mượt mà</p>
+            <p class="text-gray-400 mt-2 text-sm">Tải video độ nét cao • Tự động xóa đuôi theo dõi • Vượt rào CORS mượt mà</p>
+            
+            <div class="flex items-center justify-center gap-4 mt-4 flex-wrap text-sm text-gray-400">
+                <span class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-dark-800 border border-dark-700 text-yt"><i class="fa-brands fa-youtube text-lg"></i> YouTube</span>
+                <span class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-dark-800 border border-dark-700 text-fb"><i class="fa-brands fa-facebook text-lg"></i> Facebook</span>
+                <span class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-dark-800 border border-dark-700 text-ig"><i class="fa-brands fa-instagram text-lg"></i> Instagram</span>
+                <span class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-dark-800 border border-dark-700 text-tiktok"><i class="fa-brands fa-tiktok text-lg"></i> TikTok</span>
+                <span class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-dark-800 border border-dark-700 text-gray-300"><i class="fa-brands fa-x-twitter text-lg"></i> X / Threads</span>
+            </div>
         </header>
 
         <div class="bg-dark-800 p-6 rounded-2xl shadow-2xl border border-dark-700 mb-8">
-            <label class="block text-sm font-semibold mb-2 text-primary">Nhập liên kết video:</label>
+            <div class="flex justify-between items-center mb-2">
+                <label class="block text-sm font-semibold text-primary">Nhập liên kết video:</label>
+                <span id="platformBadge" class="hidden text-xs font-bold px-2.5 py-0.5 rounded-full transition-all"></span>
+            </div>
             
             <div class="flex flex-col md:flex-row gap-3 mb-4">
                 <div class="relative flex-1">
-                    <input type="text" id="videoUrl" placeholder="Dán link YouTube, TikTok, Facebook, Instagram..." 
+                    <input type="text" id="videoUrl" placeholder="Dán link Reels, Story, Watch, TikTok, Shorts..." oninput="detectPlatform(this.value)"
                         class="w-full bg-dark-900 border border-dark-600 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-primary transition pl-11 pr-10 shadow-inner">
-                    <i class="fa-solid fa-link absolute left-4 top-4 text-gray-500"></i>
+                    <i id="inputIcon" class="fa-solid fa-link absolute left-4 top-4 text-gray-500 transition-all"></i>
                 </div>
                 
                 <div class="flex gap-2 justify-end flex-wrap">
@@ -101,11 +116,10 @@
         let historyData = JSON.parse(localStorage.getItem('videoHistory') || '[]');
         renderHistory();
 
-        // --- 1. HỆ THỐNG TOAST NOTIFICATION (THAY THẾ ALERT/PROMPT) ---
+        // --- HỆ THỐNG TOAST ---
         function showToast(message, type = 'info') {
             const container = document.getElementById('toastContainer');
             const toast = document.createElement('div');
-            
             const colors = {
                 success: 'bg-emerald-500 text-dark-900 font-semibold',
                 error: 'bg-red-500 text-white font-semibold',
@@ -129,19 +143,53 @@
             }, 3000);
         }
 
-        // --- 2. XỬ LÝ NÚT COPY & PASTE SIÊU MƯỢT ---
+        // --- TỰ ĐỘNG NHẬN DIỆN NỀN TẢNG ---
+        function detectPlatform(url) {
+            const badge = document.getElementById('platformBadge');
+            const icon = document.getElementById('inputIcon');
+            const lowerUrl = url.toLowerCase();
+
+            badge.className = 'text-xs font-bold px-2.5 py-0.5 rounded-full transition-all flex items-center gap-1';
+            
+            if (lowerUrl.includes('facebook.com') || lowerUrl.includes('fb.watch') || lowerUrl.includes('fb.gg')) {
+                badge.innerHTML = '<i class="fa-brands fa-facebook"></i> Facebook';
+                badge.classList.add('bg-fb/20', 'text-fb', 'border', 'border-fb/30');
+                icon.className = 'fa-brands fa-facebook absolute left-4 top-4 text-fb transition-all text-lg';
+            } else if (lowerUrl.includes('instagram.com') || lowerUrl.includes('instagr.am')) {
+                badge.innerHTML = '<i class="fa-brands fa-instagram"></i> Instagram';
+                badge.classList.add('bg-ig/20', 'text-ig', 'border', 'border-ig/30');
+                icon.className = 'fa-brands fa-instagram absolute left-4 top-4 text-ig transition-all text-lg';
+            } else if (lowerUrl.includes('tiktok.com')) {
+                badge.innerHTML = '<i class="fa-brands fa-tiktok"></i> TikTok';
+                badge.classList.add('bg-tiktok/20', 'text-tiktok', 'border', 'border-tiktok/30');
+                icon.className = 'fa-brands fa-tiktok absolute left-4 top-4 text-tiktok transition-all text-lg';
+            } else if (lowerUrl.includes('youtube.com') || lowerUrl.includes('youtu.be')) {
+                badge.innerHTML = '<i class="fa-brands fa-youtube"></i> YouTube';
+                badge.classList.add('bg-yt/20', 'text-yt', 'border', 'border-yt/30');
+                icon.className = 'fa-brands fa-youtube absolute left-4 top-4 text-yt transition-all text-lg';
+            } else if (url.trim() !== "") {
+                badge.innerHTML = '<i class="fa-solid fa-globe"></i> Nền tảng khác';
+                badge.classList.add('bg-gray-700', 'text-gray-300');
+                icon.className = 'fa-solid fa-link absolute left-4 top-4 text-gray-400 transition-all';
+            } else {
+                badge.className = 'hidden';
+                icon.className = 'fa-solid fa-link absolute left-4 top-4 text-gray-500 transition-all';
+            }
+        }
+
+        // --- CÁC HÀM THAO TÁC MENU ---
         async function smartPaste() {
             const input = document.getElementById('videoUrl');
             try {
                 const text = await navigator.clipboard.readText();
                 if (text) {
                     input.value = text;
+                    detectPlatform(text);
                     showToast('Đã dán liên kết thành công!', 'success');
                 } else {
                     showToast('Clipboard đang trống!', 'error');
                 }
             } catch (err) {
-                // Trình duyệt chặn quyền tự động -> Focus vào ô và báo nhẹ nhàng
                 input.focus();
                 showToast('Hãy nhấn Ctrl + V (hoặc Nhấn giữ -> Dán) vào ô trống!', 'info');
             }
@@ -149,16 +197,13 @@
 
         async function smartCopy() {
             const input = document.getElementById('videoUrl');
-            if (!input.value.trim()) {
-                return showToast('Không có liên kết để sao chép!', 'error');
-            }
+            if (!input.value.trim()) return showToast('Không có liên kết để sao chép!', 'error');
             try {
                 await navigator.clipboard.writeText(input.value);
                 const copyText = document.getElementById('copyText');
                 copyText.innerText = 'Đã chép!';
                 copyText.classList.add('text-success');
                 showToast('Đã sao chép vào Clipboard!', 'success');
-                
                 setTimeout(() => {
                     copyText.innerText = 'Copy';
                     copyText.classList.remove('text-success');
@@ -172,11 +217,11 @@
 
         function clearUrl() {
             document.getElementById('videoUrl').value = '';
+            detectPlatform('');
             document.getElementById('resultArea').classList.add('hidden');
             showToast('Đã xóa ô nhập!', 'info');
         }
 
-        // --- 3. QUẢN LÝ LỊCH SỬ & HÀNG ĐỢI ---
         function addUrlToQueue() {
             const url = document.getElementById('videoUrl').value.trim();
             if (!url) return showToast('Vui lòng nhập liên kết video trước!', 'error');
@@ -186,7 +231,7 @@
         }
 
         function saveToHistory(title, url, platform = 'N/A', thumbnail = null) {
-            historyData = historyData.filter(item => item.url !== url); // Xóa trùng
+            historyData = historyData.filter(item => item.url !== url);
             historyData.unshift({ title, url, platform, thumbnail, time: new Date().toLocaleTimeString('vi-VN') });
             if (historyData.length > 20) historyData.pop();
             localStorage.setItem('videoHistory', JSON.stringify(historyData));
@@ -210,6 +255,7 @@
 
         function loadFromHistory(url) {
             document.getElementById('videoUrl').value = url;
+            detectPlatform(url);
             window.scrollTo({ top: 0, behavior: 'smooth' });
             fetchVideo();
         }
@@ -236,15 +282,20 @@
             `).join('');
         }
 
-        // --- 4. HÀM TẢI VIDEO XỬ LÝ TRIỆT ĐỂ CORS ---
+        // --- TẢI VIDEO XỬ LÝ TRIỆT ĐỂ ---
         async function fetchVideo() {
             const urlInput = document.getElementById('videoUrl');
-            const url = urlInput.value.trim();
+            let url = urlInput.value.trim();
             const quality = document.getElementById('qualitySelect').value;
             const resultArea = document.getElementById('resultArea');
             const btn = document.getElementById('downloadBtn');
 
             if (!url) return showToast('Vui lòng nhập liên kết video!', 'error');
+
+            // Tự động dọn dẹp các đuôi theo dõi rác của FB/IG ở phía Frontend
+            url = url.replace(/([?&])(igsh|mibextid|fbclid|utm_[^&]+|share_id|si|ref|loc)=[^&]*/g, '$1').replace(/[?&]$/, '');
+            urlInput.value = url;
+            detectPlatform(url);
 
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>Đang xử lý...</span>';
             btn.disabled = true;
@@ -255,7 +306,7 @@
                 const data = await res.json();
 
                 if (!res.ok || !data.success) {
-                    throw new Error(data.detail || 'Không thể đọc link này. Link có thể ở chế độ riêng tư.');
+                    throw new Error(data.detail || 'Không thể đọc link này. Vui lòng kiểm tra lại quyền công khai của video!');
                 }
 
                 saveToHistory(data.title, url, data.platform, data.thumbnail);
@@ -266,7 +317,6 @@
                     if (match) selectedUrl = match.url;
                 }
 
-                // Làm sạch tên file để tải xuống không lỗi
                 const safeTitle = (data.title || "video").replace(/[^a-zA-Z0-9 ÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂưăạảấầẩẫậắằẳẵặẹẻẽềềểỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ_-]/g, "").trim();
                 const proxyUrl = `${API_BASE}/proxy?url=${encodeURIComponent(selectedUrl)}&filename=${encodeURIComponent(safeTitle + '.mp4')}`;
 
@@ -276,24 +326,23 @@
                         <div class="flex-1 text-center md:text-left overflow-hidden w-full">
                             <span class="text-xs font-bold uppercase tracking-wider bg-primary/20 text-primary px-3 py-1 rounded-full border border-primary/30">${data.platform || 'Video'}</span>
                             <h3 class="text-lg font-bold text-white mt-2 mb-1 truncate" title="${data.title}">${data.title}</h3>
-                            <p class="text-sm text-gray-400 mb-5">Chất lượng đã chọn: <strong class="text-success">${quality === 'best' ? 'Tốt nhất (Mặc định)' : quality}</strong></p>
+                            <p class="text-sm text-gray-400 mb-5">Chất lượng: <strong class="text-success">${quality === 'best' ? 'Tốt nhất (Mặc định)' : quality}</strong></p>
                             
                             <div class="flex flex-wrap gap-3 justify-center md:justify-start">
                                 <button onclick="triggerDirectDownload('${selectedUrl}', '${safeTitle}.mp4')" type="button"
                                     class="bg-success hover:bg-success/80 active:scale-95 text-dark-900 font-bold px-6 py-3 rounded-xl transition flex items-center gap-2 shadow-lg shadow-success/10 text-sm">
-                                    <i class="fa-solid fa-bolt"></i> Tải Trực Tiếp (Tốc Độ Cao)
+                                    <i class="fa-solid fa-bolt"></i> Tải Trực Tiếp (Nhanh)
                                 </button>
-                                
                                 <a href="${proxyUrl}" target="_self"
                                     class="bg-gradient-to-r from-amber-500 to-orange-600 hover:opacity-90 active:scale-95 text-white font-medium px-5 py-3 rounded-xl transition flex items-center gap-2 shadow-md text-sm">
-                                    <i class="fa-solid fa-shield-halved"></i> Tải Qua Proxy (Vượt CORS 100%)
+                                    <i class="fa-solid fa-shield-halved"></i> Tải Qua Proxy (Khuyên dùng cho FB/IG)
                                 </a>
                             </div>
                         </div>
                     </div>
                 `;
                 resultArea.classList.remove('hidden');
-                showToast('Phân tích thành công! Hãy chọn cách tải bên dưới.', 'success');
+                showToast('Phân tích thành công! Đối với Facebook/Instagram nên dùng "Tải Qua Proxy".', 'success');
 
             } catch (err) {
                 showToast(err.message, 'error');
@@ -303,11 +352,8 @@
             }
         }
 
-        // --- 5. TUYỆT CHIÊU FORCE DOWNLOAD TRỰC TIẾP KHÔNG BỊ MỞ TAB MỚI ---
         function triggerDirectDownload(url, filename) {
             showToast('Đang bắt đầu tải xuống trực tiếp...', 'info');
-            
-            // Tạo một thẻ a ẩn và ép thuộc tính download
             const a = document.createElement('a');
             a.href = url;
             a.setAttribute('download', filename);
@@ -316,11 +362,6 @@
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
-            
-            // Nhắc nhở người dùng nếu CDN của trình duyệt bắt mở tab mới
-            setTimeout(() => {
-                showToast('Mẹo: Nếu trình duyệt tự mở video thay vì tải, hãy dùng nút "Tải Qua Proxy"! ', 'info');
-            }, 3000);
         }
     </script>
 </body>
