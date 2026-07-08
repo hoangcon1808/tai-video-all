@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="vi" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Universal Video Downloader Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: { 800: '#1e1e2e', 900: '#11111b', 700: '#313244', 600: '#45475a' },
+                        primary: '#cba6f7',
+                        accent: '#f38ba8',
+                        success: '#a6e3a1'
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-dark-900 text-gray-200 min-h-screen font-sans selection:bg-primary selection:text-dark-900">
+
+    <div class="max-w-4xl mx-auto p-4 md:p-6">
+        <header class="text-center py-6 mb-8 border-b border-dark-700">
+            <h1 class="text-3xl md:text-4xl font-extrabold bg-gradient-to-r from-primary via-pink-400 to-accent bg-clip-text text-transparent">
+                <i class="fa-solid fa-cloud-arrow-down mr-2"></i>Universal Video Downloader
+            </h1>
+            <p class="text-gray-400 mt-2 text-sm">Tải video đa nền tảng chất lượng cao (YouTube, TikTok, Facebook, Instagram...) vượt CORS</p>
+        </header>
+
+        <div class="bg-dark-800 p-6 rounded-2xl shadow-2xl border border-dark-700 mb-8">
+            <label class="block text-sm font-semibold mb-2 text-primary">Nhập liên kết video:</label>
+            
+            <div class="flex flex-col md:flex-row gap-3 mb-4">
+                <div class="relative flex-1">
+                    <input type="text" id="videoUrl" placeholder="https://www.youtube.com/watch?v=... hoặc link TikTok, FB..." 
+                        class="w-full bg-dark-900 border border-dark-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-primary transition pl-10 pr-10 shadow-inner">
+                    <i class="fa-solid fa-link absolute left-3.5 top-4 text-gray-500"></i>
+                </div>
+                
+                <div class="flex gap-2 justify-end flex-wrap">
+                    <button onclick="pasteUrl()" title="Paste" class="bg-dark-700 hover:bg-dark-600 px-4 py-3 rounded-xl transition font-medium flex items-center gap-1.5 border border-dark-600">
+                        <i class="fa-regular fa-clipboard text-primary"></i> <span class="hidden sm:inline">Paste</span>
+                    </button>
+                    <button onclick="copyUrl()" title="Copy" class="bg-dark-700 hover:bg-dark-600 px-4 py-3 rounded-xl transition font-medium flex items-center gap-1.5 border border-dark-600">
+                        <i class="fa-regular fa-copy text-yellow-400"></i> <span class="hidden sm:inline">Copy</span>
+                    </button>
+                    <button onclick="clearUrl()" title="Xóa" class="bg-dark-700 hover:bg-red-500/20 px-4 py-3 rounded-xl transition font-medium flex items-center gap-1.5 border border-dark-600 hover:border-red-500/50 text-red-400">
+                        <i class="fa-solid fa-eraser"></i> <span class="hidden sm:inline">Xóa</span>
+                    </button>
+                    <button onclick="addUrlToQueue()" title="Thêm vào danh sách chờ" class="bg-dark-700 hover:bg-emerald-500/20 px-4 py-3 rounded-xl transition font-medium flex items-center gap-1.5 border border-dark-600 hover:border-emerald-500/50 text-success">
+                        <i class="fa-solid fa-plus"></i> <span class="hidden sm:inline">Thêm</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-4 items-center justify-between pt-2 border-t border-dark-700/60">
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <span class="text-sm text-gray-400 whitespace-nowrap"><i class="fa-solid fa-sliders mr-1 text-primary"></i>Chất lượng:</span>
+                    <select id="qualitySelect" class="bg-dark-900 border border-dark-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary text-white w-full sm:w-auto">
+                        <option value="best">🔥 Tốt nhất (Tự động)</option>
+                        <option value="1080">1080p (Full HD)</option>
+                        <option value="720">720p (HD)</option>
+                        <option value="480">480p</option>
+                        <option value="audio">🎵 Chỉ lấy Âm thanh (MP3)</option>
+                    </select>
+                </div>
+
+                <button onclick="fetchVideo()" id="downloadBtn" 
+                    class="w-full sm:w-auto bg-gradient-to-r from-primary to-accent hover:opacity-90 text-dark-900 font-bold px-8 py-3 rounded-xl shadow-lg shadow-primary/20 transition duration-200 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-bolt"></i> Phân Tích & Tải
+                </button>
+            </div>
+        </div>
+
+        <div id="resultArea" class="hidden bg-dark-800 p-6 rounded-2xl shadow-2xl border border-dark-700 mb-8 animate-fade-in">
+            </div>
+
+        <div class="bg-dark-800 p-6 rounded-2xl shadow-2xl border border-dark-700">
+            <div class="flex justify-between items-center mb-4 pb-3 border-b border-dark-700">
+                <h3 class="font-bold text-lg text-white flex items-center gap-2">
+                    <i class="fa-solid fa-clock-rotate-left text-primary"></i> Lịch Sử & Danh Sách Chờ
+                </h3>
+                <button onclick="clearHistory()" class="text-xs text-red-400 hover:underline"><i class="fa-solid fa-trash mr-1"></i>Xóa lịch sử</button>
+            </div>
+            <div id="historyList" class="space-y-3 max-h-80 overflow-y-auto pr-1">
+                <p class="text-gray-500 text-sm text-center py-4">Chưa có lịch sử tải nào.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api';
+        let historyData = JSON.parse(localStorage.getItem('videoHistory') || '[]');
+        renderHistory();
+
+        // --- CÁC HÀM MENU ---
+        async function pasteUrl() {
+            try {
+                const text = await navigator.clipboard.readText();
+                document.getElementById('videoUrl').value = text;
+            } catch (err) {
+                alert('Không thể đọc Clipboard. Vui lòng cấp quyền hoặc dán thủ công!');
+            }
+        }
+
+        function copyUrl() {
+            const url = document.getElementById('videoUrl').value;
+            if (!url) return alert('Không có liên kết để sao chép!');
+            navigator.clipboard.writeText(url);
+            alert('Đã sao chép liên kết vào Clipboard!');
+        }
+
+        function clearUrl() {
+            document.getElementById('videoUrl').value = '';
+            document.getElementById('resultArea').classList.add('hidden');
+        }
+
+        function addUrlToQueue() {
+            const url = document.getElementById('videoUrl').value.trim();
+            if (!url) return alert('Vui lòng nhập liên kết trước!');
+            saveToHistory('Chờ xử lý: ' + url.substring(0, 30) + '...', url, 'Danh sách chờ');
+            clearUrl();
+        }
+
+        function editHistoryItem(index) {
+            const newUrl = prompt("Sửa lại đường dẫn URL:", historyData[index].url);
+            if (newUrl !== null && newUrl.trim() !== "") {
+                historyData[index].url = newUrl.trim();
+                localStorage.setItem('videoHistory', JSON.stringify(historyData));
+                renderHistory();
+            }
+        }
+
+        function deleteHistoryItem(index) {
+            historyData.splice(index, 1);
+            localStorage.setItem('videoHistory', JSON.stringify(historyData));
+            renderHistory();
+        }
+
+        function clearHistory() {
+            if (confirm("Bạn có chắc chắn muốn xóa toàn bộ lịch sử?")) {
+                historyData = [];
+                localStorage.removeItem('videoHistory');
+                renderHistory();
+            }
+        }
+
+        function saveToHistory(title, url, platform = 'N/A', thumbnail = null) {
+            historyData.unshift({ title, url, platform, thumbnail, time: new Date().toLocaleTimeString('vi-VN') });
+            if (historyData.length > 20) historyData.pop(); // Lưu tối đa 20 mục
+            localStorage.setItem('videoHistory', JSON.stringify(historyData));
+            renderHistory();
+        }
+
+        function renderHistory() {
+            const container = document.getElementById('historyList');
+            if (historyData.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-sm text-center py-4">Chưa có lịch sử tải nào.</p>';
+                return;
+            }
+            container.innerHTML = historyData.map((item, idx) => `
+                <div class="flex items-center justify-between bg-dark-900/80 p-3 rounded-xl border border-dark-700/60 hover:border-dark-600 transition">
+                    <div class="flex items-center gap-3 overflow-hidden">
+                        ${item.thumbnail ? `<img src="${item.thumbnail}" class="w-12 h-10 object-cover rounded-lg flex-shrink-0">` : `<div class="w-12 h-10 bg-dark-700 rounded-lg flex items-center justify-center text-primary"><i class="fa-solid fa-video"></i></div>`}
+                        <div class="overflow-hidden">
+                            <h4 class="font-medium text-sm truncate text-gray-200" title="${item.title}">${item.title}</h4>
+                            <p class="text-xs text-gray-500 truncate mt-0.5">${item.platform} • <a href="javascript:void(0)" onclick="loadFromHistory('${item.url}')" class="text-primary hover:underline">Tải lại</a></p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-1 flex-shrink-0 ml-2">
+                        <button onclick="editHistoryItem(${idx})" title="Sửa" class="p-2 text-gray-400 hover:text-yellow-400 transition"><i class="fa-solid fa-pen-to-square"></i></button>
+                        <button onclick="deleteHistoryItem(${idx})" title="Xóa" class="p-2 text-gray-400 hover:text-red-400 transition"><i class="fa-solid fa-xmark text-lg"></i></button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function loadFromHistory(url) {
+            document.getElementById('videoUrl').value = url;
+            fetchVideo();
+        }
+
+        // --- HÀM TẢI VIDEO (XỬ LÝ CHÍNH) ---
+        async function fetchVideo() {
+            const urlInput = document.getElementById('videoUrl');
+            const url = urlInput.value.trim();
+            const quality = document.getElementById('qualitySelect').value;
+            const resultArea = document.getElementById('resultArea');
+            const btn = document.getElementById('downloadBtn');
+
+            if (!url) return alert('Vui lòng nhập link video!');
+
+            // Hiệu ứng Loading
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang phân tích...';
+            btn.disabled = true;
+            resultArea.classList.add('hidden');
+
+            try {
+                const res = await fetch(`${API_BASE}/extract?url=${encodeURIComponent(url)}`);
+                const data = await res.json();
+
+                if (!res.ok || !data.success) {
+                    throw new Error(data.detail || 'Không thể lấy thông tin video. Link có thể bị hạn chế.');
+                }
+
+                saveToHistory(data.title, url, data.platform, data.thumbnail);
+
+                // Lọc định dạng theo cấu hình chọn
+                let selectedUrl = data.direct_url;
+                if (quality !== 'best' && data.formats && data.formats.length > 0) {
+                    const match = data.formats.find(f => quality === 'audio' ? !f.has_video : f.quality.includes(quality));
+                    if (match) selectedUrl = match.url;
+                }
+
+                const safeFilename = data.title.replace(/[^a-zA-Z0-9 _-]/g, "").trim() || "video_download";
+
+                // Render giao diện kết quả
+                resultArea.innerHTML = `
+                    <div class="flex flex-col md:flex-row gap-6 items-center">
+                        ${data.thumbnail ? `<img src="${data.thumbnail}" class="w-full md:w-48 h-32 object-cover rounded-xl shadow-md border border-dark-600">` : ''}
+                        <div class="flex-1 text-center md:text-left overflow-hidden w-full">
+                            <span class="text-xs font-bold uppercase tracking-wider bg-primary/20 text-primary px-2.5 py-1 rounded-full border border-primary/30">${data.platform || 'Video'}</span>
+                            <h3 class="text-lg font-bold text-white mt-2 mb-1 truncate" title="${data.title}">${data.title}</h3>
+                            <p class="text-sm text-gray-400 mb-4">Thời lượng: ${data.duration ? Math.round(data.duration) + ' giây' : 'N/A'} | Định dạng: <strong class="text-success">${quality === 'best' ? 'Tốt nhất' : quality}</strong></p>
+                            
+                            <div class="flex flex-wrap gap-3 justify-center md:justify-start">
+                                <a href="${selectedUrl}" target="_blank" rel="noreferrer"
+                                    class="bg-success hover:bg-success/80 text-dark-900 font-bold px-6 py-2.5 rounded-xl transition flex items-center gap-2 shadow-lg shadow-success/10">
+                                    <i class="fa-solid fa-external-link"></i> Xem Gốc / Tải Nhanh
+                                </a>
+                                <a href="${API_BASE}/proxy?url=${encodeURIComponent(selectedUrl)}&filename=${encodeURIComponent(safeFilename + '.mp4')}" 
+                                    class="bg-gradient-to-r from-amber-500 to-orange-600 hover:opacity-90 text-white font-medium px-5 py-2.5 rounded-xl transition flex items-center gap-2 shadow-md text-sm">
+                                    <i class="fa-solid fa-shield-halved"></i> Tải qua Proxy (Vượt CORS)
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                resultArea.classList.remove('hidden');
+
+            } catch (err) {
+                alert('Lỗi: ' + err.message);
+            } finally {
+                btn.innerHTML = '<i class="fa-solid fa-bolt"></i> Phân Tích & Tải';
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
